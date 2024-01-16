@@ -1,0 +1,25 @@
+{
+  "name": "Mini Scratchpad",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "A mini prospecting tracker",
+  "homepage_url": "https://github.com/gsingh93/add-row-to-google-sheets-extension",
+  "browser_action": {
+    "default_title": "Mini Scratchpad",
+    "default_popup": "popup.html"
+  },
+  "content_security_policy": "script-src 'self' https://apis.google.com; object-src 'self';",
+  "oauth2": {
+    "client_id": "899351179210-fjlqfju9jpettfcrhb5ioktohihekrgd.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.metadata.readonly",
+      "https://www.googleapis.com/auth/spreadsheets"
+    ]
+  },
+  "permissions": ["identity", "tabs", "activeTab"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
