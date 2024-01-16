@@ -144,10 +144,6 @@ const getData = (dataType, prompt) => {
     });
 };
 
-document.getElementById("Sign In").addEventListener("click", function () {
-  signin();
-});
-
 document.getElementById("linkedInDM").addEventListener("click", function () {
   const prompt =
     "Given the following page text from a linkedin page, please give me the name, title, and company of this person, delimited by the '^' character. If you can't figure out any of the values, use None.\n\nText Content:";
