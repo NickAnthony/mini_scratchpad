@@ -73,10 +73,14 @@ const saveToSheets = (row) => {
       console.log(response);
     }
   );
+
+  setTimeout(function () {
+    setStatus("Working.  Let's do some outreach!");
+  }, 5000);
 };
 
 function setStatus(status) {
-  document.getElementById("status").innerText = status;
+  document.getElementById("status").innerText = "Status: " + status;
 }
 
 function appendToSheet(row) {
