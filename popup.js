@@ -20,7 +20,7 @@ const signin = () => {
 };
 signin();
 
-const SHEETID = "142Uk39KQFQ6dI3nk8wybpB3OWt9zHIRMaA2ap1l3rX8";
+const SPREADSHEET_ID = "142Uk39KQFQ6dI3nk8wybpB3OWt9zHIRMaA2ap1l3rX8";
 
 const callGPT4 = (prompt) => {
   var apiUrl = "https://api.openai.com/v1/chat/completions"; // This URL might change, so make sure to get the correct endpoint from OpenAI's official documentation
@@ -58,11 +58,122 @@ const callGPT4 = (prompt) => {
     });
 };
 
+const getSheetIdFromTitle = async (title) => {
+  try {
+    const spreadsheetId = SPREADSHEET_ID; // Replace with your actual spreadsheet ID
+    const response = await gapi.client.sheets.spreadsheets.get({
+      spreadsheetId,
+    });
+
+    const sheets = response.result.sheets;
+
+    for (const sheet of sheets) {
+      if (sheet.properties.title === title) {
+        const sheetId = sheet.properties.sheetId;
+        console.log(`Sheet ID of ${title} is ${sheetId}`);
+        return sheetId;
+      }
+    }
+
+    console.log("Sheet not found");
+  } catch (error) {
+    console.error("Error finding sheet:", error);
+  }
+
+  return null;
+};
+
+const createSheet = async (sheetTitle) => {
+  try {
+    const spreadsheetId = SPREADSHEET_ID;
+
+    // First, check if the sheet already exists
+    const existingSheet = await gapi.client.sheets.spreadsheets.get({
+      spreadsheetId,
+    });
+
+    const sheets = existingSheet.result.sheets;
+    const sheetExists = sheets.some(
+      (sheet) => sheet.properties.title === sheetTitle
+    );
+
+    if (sheetExists) {
+      console.log('Sheet "Personal CRM" already exists.');
+      for (const sheet of sheets) {
+        if (sheet.properties.title === title) {
+          const sheetId = sheet.properties.sheetId;
+          return sheetId;
+        }
+      }
+    }
+
+    // If the sheet does not exist, create a new one
+    const requests = [
+      {
+        addSheet: {
+          properties: {
+            title: sheetTitle,
+          },
+        },
+      },
+    ];
+
+    const batchUpdateRequest = {
+      requests,
+    };
+
+    // Send the request to create the sheet
+    const response = await gapi.client.sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      resource: batchUpdateRequest,
+    });
+
+    console.log('Sheet "Personal CRM" created successfully.');
+    return response.sheetId;
+  } catch (error) {
+    console.error("Error creating sheet:", error);
+  }
+};
+
 const saveToSheets = (row) => {
   // data = { timestamp, type, url, name, title, company }
 
   console.log("!!!!");
   console.log(row);
+
+  if (row[1] === "Personal CRM") {
+    // Check if there is a sheet named "Personal CRM"
+    getSheetIdFromTitle("Personal CRM").then((sheetId) => {
+      if (sheetId) {
+        console.log("Sheet exists");
+        // If so, append to it
+        appendToSheet(row, "Personal CRM").then(
+          function () {
+            setStatus("Successfully appended row");
+          },
+          function (response) {
+            setStatus("Error appnding row");
+            console.log(response);
+          }
+        );
+      } else {
+        createSheet("Personal CRM").then(() => {
+          // Then append to it
+          appendToSheet(row, "Personal CRM").then(
+            function () {
+              setStatus("Successfully appended row");
+            },
+            function (response) {
+              setStatus("Error appnding row");
+              console.log(response);
+            }
+          );
+        });
+      }
+    });
+
+    return;
+  }
 
   appendToSheet(row).then(
     function () {
@@ -83,13 +194,22 @@ function setStatus(status) {
   document.getElementById("status").innerText = "Status: " + status;
 }
 
-function appendToSheet(row) {
+function appendToSheet(row, sheetTitle) {
   var rangeEnd = String.fromCharCode("A".charCodeAt(0) + row.length);
-  var appendParams = {
-    spreadsheetId: SHEETID,
-    range: "A:" + rangeEnd,
-    valueInputOption: "RAW",
-  };
+  if (sheetTitle) {
+    var appendParams = {
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${sheetTitle}!A:${rangeEnd}`,
+      valueInputOption: "RAW",
+    };
+  } else {
+    var appendParams = {
+      spreadsheetId: SPREADSHEET_ID,
+      range: "A:" + rangeEnd,
+      valueInputOption: "RAW",
+    };
+  }
+
   var valueRangeBody = {
     majorDimension: "ROWS",
     values: [row],
@@ -137,6 +257,12 @@ const getData = (dataType, prompt) => {
       // const profileText = document.querySelector("section[data-member-id]").textContent.replaceAll("\n", "")
       // const answer = callGPT4(`${prompt}\n${profileText}`)
       // debugger
+      if (dataType === "Personal CRM") {
+        const meet = document.getElementById("personalCRMMeet").value;
+        const details = document.getElementById("personalCRMDetails").value;
+
+        return [humanReadableDate, dataType, url1, meet, details];
+      }
 
       return [humanReadableDate, dataType, url1];
     })
@@ -236,4 +362,14 @@ document
     const prompt = "";
     const data = getData("Cambrian Cofounder Match Recruiting", prompt);
     saveToSheets(data);
+  });
+
+document
+  .getElementById("saveToPersonalCRM")
+  .addEventListener("click", function () {
+    const prompt = "";
+    const data = getData("Personal CRM", prompt);
+    saveToSheets(data);
+    document.getElementById("personalCRMMeet").innerText = "";
+    document.getElementById("personalCRMDetails").innerText = "";
   });
