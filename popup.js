@@ -274,101 +274,120 @@ const getData = (dataType, prompt) => {
     });
 };
 
-document.getElementById("linkedInDM").addEventListener("click", function () {
-  const prompt =
-    "Given the following page text from a linkedin page, please give me the name, title, and company of this person, delimited by the '^' character. If you can't figure out any of the values, use None.\n\nText Content:";
-  const data = getData("LinkedIn DM Prospecting", prompt);
+document
+  .getElementById("linkedInDM")
+  .addEventListener("click", function (event) {
+    const prompt =
+      "Given the following page text from a linkedin page, please give me the name, title, and company of this person, delimited by the '^' character. If you can't figure out any of the values, use None.\n\nText Content:";
+    const data = getData("LinkedIn DM Prospecting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
+    saveToSheets(data);
+  });
 
-  saveToSheets(data);
-});
+document
+  .getElementById("warmIntro")
+  .addEventListener("click", function (event) {
+    const prompt = "";
+    const data = getData("Warm Intro Connector Prospecting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
+    saveToSheets(data);
+  });
 
-document.getElementById("warmIntro").addEventListener("click", function () {
-  const prompt = "";
-  const data = getData("Warm Intro Connector Prospecting", prompt);
-  saveToSheets(data);
-});
-
-document.getElementById("emailed").addEventListener("click", function () {
+document.getElementById("emailed").addEventListener("click", function (event) {
   const prompt = "";
   const data = getData("Emailed Prospecting", prompt);
-  saveToSheets(data);
-});
-
-document.getElementById("followOnLI").addEventListener("click", function () {
-  const prompt = "";
-  const data = getData("LinkedIn Follow Prospecting", prompt);
-  saveToSheets(data);
-});
-
-document.getElementById("ycCofounder").addEventListener("click", function () {
-  const prompt = "";
-  const data = getData("YC Cofounder Match Prospecting", prompt);
+  event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
   saveToSheets(data);
 });
 
 document
+  .getElementById("followOnLI")
+  .addEventListener("click", function (event) {
+    const prompt = "";
+    const data = getData("LinkedIn Follow Prospecting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
+    saveToSheets(data);
+  });
+
+document
+  .getElementById("ycCofounder")
+  .addEventListener("click", function (event) {
+    const prompt = "";
+    const data = getData("YC Cofounder Match Prospecting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
+    saveToSheets(data);
+  });
+
+document
   .getElementById("cambrianCofounder")
-  .addEventListener("click", function () {
+  .addEventListener("click", function (event) {
     const prompt = "";
     const data = getData("Cambrian Cofounder Match Prospecting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
   });
 
 document
   .getElementById("linkedInDMRecruiting")
-  .addEventListener("click", function () {
+  .addEventListener("click", function (event) {
     const prompt =
       "Given the following page text from a linkedin page, please give me the name, title, and company of this person, delimited by the '^' character. If you can't figure out any of the values, use None.\n\nText Content:";
     const data = getData("LinkedIn DM Recruiting", prompt);
-
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
   });
 
 document
   .getElementById("warmIntroRecruiting")
-  .addEventListener("click", function () {
+  .addEventListener("click", function (event) {
     const prompt = "";
     const data = getData("Warm Intro Connector Recruiting", prompt);
     saveToSheets(data);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
   });
 
 document
   .getElementById("emailedRecruiting")
-  .addEventListener("click", function () {
+  .addEventListener("click", function (event) {
     const prompt = "";
     const data = getData("Emailed Recruiting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
   });
 
 document
   .getElementById("followOnLIRecruiting")
-  .addEventListener("click", function () {
+  .addEventListener("click", function (event) {
     const prompt = "";
     const data = getData("LinkedIn Follow Recruiting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
   });
 
 document
   .getElementById("ycCofounderRecruiting")
-  .addEventListener("click", function () {
+  .addEventListener("click", function (event) {
     const prompt = "";
     const data = getData("YC Cofounder Match Recruiting", prompt);
     saveToSheets(data);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
   });
 
 document
   .getElementById("cambrianCofounderRecruiting")
-  .addEventListener("click", function () {
+  .addEventListener("click", function (event) {
     const prompt = "";
     const data = getData("Cambrian Cofounder Match Recruiting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
   });
 
 document
   .getElementById("saveToPersonalCRM")
-  .addEventListener("click", function () {
+  .addEventListener("click", function (event) {
     const prompt = "";
     const data = getData("Personal CRM", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
     document.getElementById("personalCRMMeet").innerText = "";
     document.getElementById("personalCRMDetails").innerText = "";
