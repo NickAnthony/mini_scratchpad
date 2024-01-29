@@ -77,3 +77,7 @@ button:hover,
 button:focus {
   background-color: #93c5fd;
 }
+
+textarea {
+  border: 1px solid #d1d5db;
+}
