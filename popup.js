@@ -373,3 +373,9 @@ document
     document.getElementById("personalCRMMeet").innerText = "";
     document.getElementById("personalCRMDetails").innerText = "";
   });
+
+document.getElementById("openSheet").addEventListener("click", function () {
+  chrome.tabs.create({
+    url: `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}`,
+  });
+});

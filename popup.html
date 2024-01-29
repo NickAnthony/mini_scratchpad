@@ -3,13 +3,7 @@
   <head>
     <title>Popup</title>
     <script src="https://apis.google.com/js/api.js"></script>
-    <style>
-      body {
-        width: 200px;
-        font-family: "Arial", sans-serif;
-        padding: 10px;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/styles.css" />
   </head>
   <body>
     <h2>Click to add activity</h2>
@@ -17,7 +11,7 @@
     <div id="status">Status: Working. Let's do some outreach!</div>
 
     <br />
-    Prospecting
+    <div class="header">PROSPECTING</div>
     <div>
       <button id="linkedInDM">LinkedIn DM</button>
       <button id="warmIntro">Warm Intro</button>
@@ -29,7 +23,7 @@
 
     <br />
     <br />
-    Recruiting
+    <div class="header">RECRUITING</div>
     <div>
       <button id="linkedInDMRecruiting">LinkedIn DM</button>
       <button id="warmIntroRecruiting">Warm Intro</button>
@@ -41,13 +35,21 @@
 
     <br />
     <br />
-    Personal CRM
+    <div class="header">PERSONAL CRM</div>
     <div>
-      <button id="saveToPersonalCRM">Save to personal CRM</button>
+      <button id="saveToPersonalCRM" class="button-2">
+        Save to personal CRM
+      </button>
       <div>Where did you meet them?</div>
       <textarea id="personalCRMMeet"></textarea>
       <div>Other details</div>
       <textarea id="personalCRMDetails"></textarea>
+    </div>
+
+    <br />
+    <br />
+    <div>
+      <button id="openSheet" class="button-1">Open Sheet</button>
     </div>
   </body>
 
