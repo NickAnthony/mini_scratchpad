@@ -171,6 +171,7 @@ const saveToSheets = (row) => {
         });
       }
     });
+    setLoading(false);
 
     return;
   }
@@ -192,6 +193,14 @@ const saveToSheets = (row) => {
 
 function setStatus(status) {
   document.getElementById("status").innerText = "Status: " + status;
+}
+
+function setLoading(status) {
+  if (status == true) {
+    document.getElementById("loader").style.display = "block";
+  } else {
+    document.getElementById("loader").style.display = "none";
+  }
 }
 
 function appendToSheet(row, sheetTitle) {
@@ -271,12 +280,16 @@ const getData = (dataType, prompt) => {
     })
     .catch((error) => {
       console.error("Error getting tab URL: ", error);
+    })
+    .finally(() => {
+      setLoading(false);
     });
 };
 
 document
   .getElementById("linkedInDM")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt =
       "Given the following page text from a linkedin page, please give me the name, title, and company of this person, delimited by the '^' character. If you can't figure out any of the values, use None.\n\nText Content:";
     const data = getData("LinkedIn DM Prospecting", prompt);
@@ -287,6 +300,7 @@ document
 document
   .getElementById("warmIntro")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("Warm Intro Connector Prospecting", prompt);
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
@@ -294,6 +308,7 @@ document
   });
 
 document.getElementById("emailed").addEventListener("click", function (event) {
+  setLoading(true);
   const prompt = "";
   const data = getData("Emailed Prospecting", prompt);
   event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
@@ -303,6 +318,7 @@ document.getElementById("emailed").addEventListener("click", function (event) {
 document
   .getElementById("followOnLI")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("LinkedIn Follow Prospecting", prompt);
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
@@ -321,6 +337,7 @@ document
 document
   .getElementById("cambrianCofounder")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("Cambrian Cofounder Match Prospecting", prompt);
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
@@ -330,6 +347,7 @@ document
 document
   .getElementById("linkedInDMRecruiting")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt =
       "Given the following page text from a linkedin page, please give me the name, title, and company of this person, delimited by the '^' character. If you can't figure out any of the values, use None.\n\nText Content:";
     const data = getData("LinkedIn DM Recruiting", prompt);
@@ -340,6 +358,7 @@ document
 document
   .getElementById("warmIntroRecruiting")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("Warm Intro Connector Recruiting", prompt);
     saveToSheets(data);
@@ -349,6 +368,7 @@ document
 document
   .getElementById("emailedRecruiting")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("Emailed Recruiting", prompt);
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
@@ -358,6 +378,7 @@ document
 document
   .getElementById("followOnLIRecruiting")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("LinkedIn Follow Recruiting", prompt);
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
@@ -367,6 +388,7 @@ document
 document
   .getElementById("ycCofounderRecruiting")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("YC Cofounder Match Recruiting", prompt);
     saveToSheets(data);
@@ -376,6 +398,7 @@ document
 document
   .getElementById("cambrianCofounderRecruiting")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("Cambrian Cofounder Match Recruiting", prompt);
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
@@ -385,6 +408,7 @@ document
 document
   .getElementById("saveToPersonalCRM")
   .addEventListener("click", function (event) {
+    setLoading(true);
     const prompt = "";
     const data = getData("Personal CRM", prompt);
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
