@@ -298,6 +298,18 @@ document
   });
 
 document
+  .getElementById("linkedInFollowup")
+  .addEventListener("click", function (event) {
+    setLoading(true);
+    const prompt =
+      "Given the following page text from a linkedin page, please give me the name, title, and company of this person, delimited by the '^' character. If you can't figure out any of the values, use None.\n\nText Content:";
+    const data = getData("LinkedIn Follow Up DM Prospecting", prompt);
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
+    saveToSheets(data);
+  });
+
+
+document
   .getElementById("warmIntro")
   .addEventListener("click", function (event) {
     setLoading(true);
