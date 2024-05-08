@@ -135,17 +135,20 @@ const createSheet = async (sheetTitle) => {
   }
 };
 
-const saveToSheets = (row) => {
-  // data = { timestamp, type, url, name, title, company }
+const saveToSheets = async (row) => {
+  console.log(`Received data in saveToSheets:`, row);
+  if (!Array.isArray(row) || row.length < 2) {
+    console.error("Invalid or incomplete data received in saveToSheets", row);
+    return;
+  }
 
-  console.log("!!!!");
-  console.log(row);
-
-  if (row[1] === "Personal CRM") {
+  console.log(`saveToSheet: ${row}`);
+  const action = row[1];
+  let sheetTitle = action;
+  if (action === "Personal CRM") {
     // Check if there is a sheet named "Personal CRM"
     getSheetIdFromTitle("Personal CRM").then((sheetId) => {
       if (sheetId) {
-        console.log("Sheet exists");
         // If so, append to it
         appendToSheet(row, "Personal CRM").then(
           function () {
@@ -174,22 +177,58 @@ const saveToSheets = (row) => {
     setLoading(false);
 
     return;
+  } else {
+    sheetTitle = "Activities";
   }
 
-  appendToSheet(row).then(
-    function () {
-      setStatus("Successfully appended row");
-    },
-    function (response) {
-      setStatus("Error appnding row");
-      console.log(response);
+  try {
+    const sheetId = await getSheetIdFromTitle(sheetTitle);
+    if (!sheetId) {
+      await createSheet(sheetTitle);
     }
-  );
+
+    // Retrieve headers from the sheet to map data correctly
+    const headers = await getSheetHeaders(sheetId, sheetTitle);
+    const dataMappedToHeaders = mapDataToHeaders(headers, row);
+
+    // Append the mapped data to the sheet
+    await appendToSheet(dataMappedToHeaders, sheetTitle);
+    setStatus("Successfully appended row");
+  } catch (error) {
+    setStatus("Error appending row");
+    console.error(error);
+  }
 
   setTimeout(function () {
     setStatus("Working.  Let's do some outreach!");
   }, 5000);
 };
+
+function getSheetHeaders(sheetId, sheetTitle) {
+  return gapi.client.sheets.spreadsheets.values
+    .get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${sheetTitle}!1:1`, // Assuming headers are in the first row
+    })
+    .then((response) => {
+      return response.result.values[0]; // Returns the headers as an array
+    });
+}
+
+function mapDataToHeaders(headers, rowData) {
+  const dataObject = {
+    timestamp: rowData[0],
+    type: rowData[1],
+    url: rowData[2],
+    name: rowData[3],
+    title: rowData[4],
+    company: rowData[5],
+    email: rowData[6],
+  };
+
+  // Map data to headers order
+  return headers.map((header) => dataObject[header] || "");
+}
 
 function setStatus(status) {
   document.getElementById("status").innerText = "Status: " + status;
@@ -230,6 +269,161 @@ function appendToSheet(row, sheetTitle) {
   );
 }
 
+function getCurrentTabUrl() {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs && tabs.length > 0) {
+        resolve(tabs[0].url);
+      } else {
+        reject(new Error("No active tab found"));
+      }
+    });
+  });
+}
+
+function getTabContent() {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.executeScript(
+      {
+        code: "document.documentElement.outerHTML;",
+      },
+      function (results) {
+        if (chrome.runtime.lastError) {
+          reject(
+            new Error(
+              "Error in executing script: " + chrome.runtime.lastError.message
+            )
+          );
+        } else if (results && results[0]) {
+          resolve(results[0]);
+        } else {
+          reject(new Error("No result returned from script execution"));
+        }
+      }
+    );
+  });
+}
+
+function parseOutLinkedInProfile() {
+  const nameClassIdentifier = ".artdeco-entity-lockup__title";
+  const titleClassIdentifier = ".artdeco-entity-lockup__subtitle";
+  const currentCompanyAriaLabelItentifier = "Current company: ";
+  return new Promise((resolve, reject) => {
+    getTabContent()
+      .then((html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        // Parse out the name
+        const nameElement = doc.querySelector(nameClassIdentifier);
+        let name = "";
+        if (nameElement) {
+          name = nameElement.textContent || "";
+          const span = nameElement.querySelector("span");
+          if (span) {
+            name = name.replace(span.textContent, "");
+          }
+          name = name.replace(/\s+/g, " ").trim();
+        }
+
+        // Parse out the title
+        const titleElement = doc.querySelector(titleClassIdentifier);
+        let title = "";
+        if (titleElement) {
+          title = titleElement.textContent || "";
+          const span = titleElement.querySelector("span");
+          if (span) {
+            title = title
+              .replace(span.textContent, "")
+              .replace(/\s+/g, " ")
+              .trim();
+          }
+          title = title.replace(/\s+/g, " ").trim();
+        }
+
+        // Parse out the company
+        const companyButton = doc.querySelector(
+          `button[aria-label^="${currentCompanyAriaLabelItentifier}"]`
+        );
+        let company = "";
+        if (companyButton) {
+          const fullAriaLabel = companyButton.getAttribute("aria-label");
+          const start = currentCompanyAriaLabelItentifier.length;
+          const end = fullAriaLabel.indexOf(".", start);
+          company = fullAriaLabel.substring(start, end).trim();
+        }
+
+        resolve([name, title, company]);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
+
+function parseOutLinkedInSalesNavProfile() {
+  const nameParamIdentifier = '[data-anonymize="person-name"]';
+  const jobTitleParamIdentifier = '[data-anonymize="job-title"]';
+  const currentCompanyParamItentifier = '[data-anonymize="company-name"]';
+  const linkedInProfileHrefIdentifier =
+    'a[href^="https://www.linkedin.com/in/"]';
+  const emailParamIdentifier = '[data-anonymize="email"]';
+  return new Promise((resolve, reject) => {
+    getTabContent()
+      .then((html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        // Parse out the name
+        const nameElement = doc.querySelector(nameParamIdentifier);
+        let name = "";
+        if (nameElement) {
+          name = nameElement.textContent || "";
+          name = name.replace(/\s+/g, " ").trim();
+        }
+
+        // Parse out the job title
+        const titleElement = doc.querySelector(jobTitleParamIdentifier);
+        let title = "";
+        if (titleElement) {
+          title = titleElement.textContent || "";
+          title = title.replace(/\s+/g, " ").trim();
+        }
+
+        // Parse out the company
+        const companyElement = doc.querySelector(currentCompanyParamItentifier);
+        let company = "";
+        if (companyElement) {
+          company = companyElement.textContent || "";
+          company = company.replace(/\s+/g, " ").trim();
+        }
+
+        // Parse out the email
+        const emailElement = doc.querySelector(emailParamIdentifier);
+        let email = "";
+        if (emailElement) {
+          email = emailElement.textContent || "";
+          email = email.replace(/\s+/g, " ").trim();
+        }
+
+        // Parse out the LinkedIn profile URL
+        const linkedInProfileElement = doc.querySelector(
+          linkedInProfileHrefIdentifier
+        );
+        let linkedInProfileUrl = "";
+        if (linkedInProfileElement) {
+          const fullHref = linkedInProfileElement.getAttribute("href");
+          linkedInProfileUrl = fullHref.split("?")[0] + "/"; // Extract the base URL without parameters
+        }
+
+        resolve([name, title, company, email, linkedInProfileUrl]);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
+
 const getData = (dataType, prompt) => {
   const now = new Date();
   const year = now.getFullYear();
@@ -240,40 +434,32 @@ const getData = (dataType, prompt) => {
   const seconds = String(now.getSeconds()).padStart(2, "0");
   const humanReadableDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
-  function getCurrentTabUrl() {
-    return new Promise((resolve, reject) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        if (tabs && tabs.length > 0) {
-          resolve(tabs[0].url);
-        } else {
-          reject(new Error("No active tab found"));
-        }
-      });
-    });
-  }
-
   getCurrentTabUrl()
-    .then((url1) => {
-      console.log("url1");
-      console.log(url1);
-
-      // Now that we have the URL, we can do other things
-      // For example, your original code attempted to extract page text
-      // and further process it with GPT-4, but those steps are not included here.
-
-      // TODO: The problem is that I can't get the active tab's html...
-      // debugger
-      // const profileText = document.querySelector("section[data-member-id]").textContent.replaceAll("\n", "")
-      // const answer = callGPT4(`${prompt}\n${profileText}`)
-      // debugger
+    .then((url) => {
       if (dataType === "Personal CRM") {
         const meet = document.getElementById("personalCRMMeet").value;
         const details = document.getElementById("personalCRMDetails").value;
 
-        return [humanReadableDate, dataType, url1, meet, details];
+        return [humanReadableDate, dataType, url, meet, details];
       }
 
-      return [humanReadableDate, dataType, url1];
+      if (url.includes("https://www.linkedin.com/in/")) {
+        return parseOutLinkedInProfile().then((data) => {
+          return [humanReadableDate, dataType, url, ...data];
+        });
+      }
+
+      if (url.includes("https://www.linkedin.com/sales/lead/")) {
+        return parseOutLinkedInSalesNavProfile().then((data) => {
+          const linkedInUrl = data.pop(); // Remove the URL from the data array
+          if (linkedInUrl) {
+            url = linkedInUrl;
+          }
+          return [humanReadableDate, dataType, url, ...data];
+        });
+      }
+
+      return [humanReadableDate, dataType, url];
     })
     .then((data) => {
       saveToSheets(data); // Moved this line inside the then() to ensure data is available
@@ -290,11 +476,17 @@ document
   .getElementById("linkedInDM")
   .addEventListener("click", function (event) {
     setLoading(true);
-    const prompt =
-      "Given the following page text from a linkedin page, please give me the name, title, and company of this person, delimited by the '^' character. If you can't figure out any of the values, use None.\n\nText Content:";
     const data = getData("LinkedIn DM Prospecting", prompt);
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
+  });
+
+document
+  .getElementById("linkedInParse")
+  .addEventListener("click", function (event) {
+    setLoading(true);
+    parseOutLinkedInProfile();
+    event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
   });
 
 document
@@ -307,7 +499,6 @@ document
     event.target.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
   });
-
 
 document
   .getElementById("warmIntro")
