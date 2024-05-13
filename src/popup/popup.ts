@@ -20,7 +20,7 @@ function signin() {
 }
 signin();
 
-const SPREADSHEET_ID = "142Uk39KQFQ6dI3nk8wybpB3OWt9zHIRMaA2ap1l3rX8";
+const SPREADSHEET_ID = "1_JEoi7MnrRqYHQhdq-Rdhqz13OX9ckC14VmKRn3nOqA";
 
 async function getSheetIdFromTitle(title: string): Promise<number | null> {
   try {
