@@ -487,6 +487,13 @@ async function getData(dataType: string): Promise<Data> {
   }
 }
 
+function clearProspectMessage() {
+  const messageElement = document.getElementById(
+    "prospectMessage"
+  ) as HTMLTextAreaElement;
+  if (messageElement) messageElement.value = "";
+}
+
 document
   .getElementById("linkedInDM")
   ?.addEventListener("click", async function (event) {
@@ -503,6 +510,7 @@ document
     const data = await getData("LinkedIn Follow Up DM Prospecting");
     (event.target as HTMLElement)?.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
+    clearProspectMessage();
   });
 
 document
@@ -512,6 +520,7 @@ document
     const data = await getData("Warm Intro Connector Prospecting");
     (event.target as HTMLElement)?.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
+    clearProspectMessage();
   });
 
 document
@@ -521,6 +530,7 @@ document
     const data = await getData("Emailed Prospecting");
     (event.target as HTMLElement)?.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
+    clearProspectMessage();
   });
 
 document
@@ -530,6 +540,7 @@ document
     const data = await getData("LinkedIn Follow Prospecting");
     (event.target as HTMLElement)?.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
+    clearProspectMessage();
   });
 
 document
@@ -556,6 +567,7 @@ document
     const data = await getData("LinkedIn DM Recruiting");
     (event.target as HTMLElement)?.blur(); // Makes button responsive (focus remains during call to saveToSheets)
     saveToSheets(data);
+    clearProspectMessage();
   });
 
 document
