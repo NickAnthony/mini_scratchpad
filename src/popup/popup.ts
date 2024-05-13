@@ -292,14 +292,14 @@ async function getTabContent(): Promise<string> {
   });
 }
 
-interface LinkedInProfileData {
+interface ProfileData {
   name: string;
   title: string;
   company: string;
   linkedInProfileUrl?: string;
   email?: string;
 }
-async function parseOutLinkedInProfile(): Promise<LinkedInProfileData> {
+async function parseOutLinkedInProfile(): Promise<ProfileData> {
   const nameClassIdentifier = ".artdeco-entity-lockup__title";
   const titleClassIdentifier = ".artdeco-entity-lockup__subtitle";
   const currentCompanyAriaLabelItentifier = "Current company: ";
@@ -356,7 +356,7 @@ async function parseOutLinkedInProfile(): Promise<LinkedInProfileData> {
   });
 }
 
-async function parseOutLinkedInSalesNavProfile(): Promise<LinkedInProfileData> {
+async function parseOutLinkedInSalesNavProfile(): Promise<ProfileData> {
   const nameParamIdentifier = '[data-anonymize="person-name"]';
   const jobTitleParamIdentifier = '[data-anonymize="job-title"]';
   const currentCompanyParamItentifier = '[data-anonymize="company-name"]';
@@ -411,6 +411,48 @@ async function parseOutLinkedInSalesNavProfile(): Promise<LinkedInProfileData> {
           linkedInProfileUrl = fullHref?.split("?")[0] + "/"; // Extract the base URL without parameters
         }
         resolve({ name, title, company, email, linkedInProfileUrl });
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
+
+async function parseOutBrownConnectProfile(): Promise<ProfileData> {
+  return new Promise((resolve, reject) => {
+    getTabContent()
+      .then((html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        // Parse out the name
+        const nameElement = doc.querySelector("h1");
+        let name = "";
+        if (nameElement) {
+          const aElement = nameElement.querySelector("a");
+          if (aElement) {
+            nameElement.removeChild(aElement);
+          }
+          name = nameElement.textContent || "";
+          name = name.replace(/\s+/g, " ").trim();
+        }
+
+        // Parse out the job title from the second 'span.detail'
+        const titleElements = doc.querySelectorAll("span.detail");
+        let title = "";
+        let company = "";
+        if (titleElements.length > 0) {
+          const titleElement = titleElements[0]; // Get the second element (index 1)
+          title = titleElement.textContent || "";
+          title = title.replace(/\s+/g, " ").trim();
+        }
+        if (titleElements.length > 1) {
+          const companyElement = titleElements[1]; // Get the second element (index 1)
+          company = companyElement.textContent || "";
+          company = company.replace(/\s+/g, " ").trim();
+        }
+
+        resolve({ name, title, company });
       })
       .catch((error) => {
         reject(error);
@@ -473,6 +515,14 @@ async function getData(dataType: string): Promise<Data> {
 
     if (url?.includes("https://www.linkedin.com/sales/lead/")) {
       const data = await parseOutLinkedInSalesNavProfile();
+      if (data.linkedInProfileUrl) {
+        url = data.linkedInProfileUrl ?? url;
+      }
+      return { humanReadableDate, dataType, url, ...data, message };
+    }
+
+    if (url?.includes("https://brownconnect.brown.edu/user/")) {
+      const data = await parseOutBrownConnectProfile();
       if (data.linkedInProfileUrl) {
         url = data.linkedInProfileUrl ?? url;
       }
