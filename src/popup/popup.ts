@@ -209,6 +209,7 @@ function mapDataToHeaders(headers: string[], rowData: Data) {
     title: rowData.title ?? "",
     company: rowData.company ?? "",
     email: rowData.email ?? "",
+    message: rowData.message ?? "",
   };
 
   // Map data to headers order
@@ -428,6 +429,7 @@ interface Data {
   company?: string;
   linkedInProfileUrl?: string;
   email?: string;
+  message?: string;
 }
 async function getData(dataType: string): Promise<Data> {
   const now = new Date();
@@ -447,17 +449,26 @@ async function getData(dataType: string): Promise<Data> {
     }
 
     if (dataType === "Personal CRM") {
-      const meetElement = document.getElementById("personalCRMMeet");
-      const meet = meetElement ? meetElement.innerText : "";
-      const detailsElement = document.getElementById("personalCRMDetails");
-      const details = detailsElement ? detailsElement.innerText : "";
+      const meetElement = document.getElementById(
+        "personalCRMMeet"
+      ) as HTMLTextAreaElement;
+      const meet = meetElement ? meetElement.value : "";
+      const detailsElement = document.getElementById(
+        "personalCRMDetails"
+      ) as HTMLTextAreaElement;
+      const details = detailsElement ? detailsElement.value : "";
 
       return { humanReadableDate, dataType, url, meet, details };
     }
 
+    const messageElement = document.getElementById(
+      "prospectMessage"
+    ) as HTMLTextAreaElement;
+    const message = messageElement ? messageElement.value : "";
+
     if (url?.includes("https://www.linkedin.com/in/")) {
       const data = await parseOutLinkedInProfile();
-      return { humanReadableDate, dataType, url, ...data };
+      return { humanReadableDate, dataType, url, ...data, message };
     }
 
     if (url?.includes("https://www.linkedin.com/sales/lead/")) {
@@ -465,10 +476,10 @@ async function getData(dataType: string): Promise<Data> {
       if (data.linkedInProfileUrl) {
         url = data.linkedInProfileUrl ?? url;
       }
-      return { humanReadableDate, dataType, url, ...data };
+      return { humanReadableDate, dataType, url, ...data, message };
     }
 
-    return { humanReadableDate, dataType, url };
+    return { humanReadableDate, dataType, url, message };
   } catch {
     return { humanReadableDate, dataType, url: "" };
   } finally {
